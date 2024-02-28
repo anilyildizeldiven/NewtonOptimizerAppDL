@@ -73,6 +73,7 @@ class NewtonOptimizedModel(Model):
         self.compiled_metrics.update_state(y, y_pred)
         return {m.name: m.result() for m in self.metrics}
 
+# Import necessary libraries for testing, numerical operations, TensorFlow, and data preprocessing.
 import unittest
 import numpy as np
 import tensorflow as tf
@@ -80,100 +81,103 @@ from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
 
-
+# Define a test case class for the NewtonOptimizedModel by inheriting from unittest.TestCase.
 class TestNewtonOptimizedModel(unittest.TestCase):
 
     def setUp(self):
-        # Synthetische Daten für das Testen
-        np.random.seed(42)  # Für reproduzierbare Ergebnisse
-        self.X = np.random.rand(100, 4)  # 100 Beispiele, 4 Features
-        self.y = np.random.randint(0, 3, 100)  # 100 Beispiele, 3 Klassen
+        # This method is called before each test. It prepares the data and model for testing.
+        np.random.seed(42)  # Set a random seed for reproducibility.
+        self.X = np.random.rand(100, 4)  # Generate synthetic feature data: 100 samples, 4 features each.
+        self.y = np.random.randint(0, 3, 100)  # Generate synthetic labels: 100 samples, 3 possible classes.
         encoder = LabelEncoder()
-        self.y_encoded = to_categorical(encoder.fit_transform(self.y))
+        self.y_encoded = to_categorical(encoder.fit_transform(self.y))  # Encode labels into one-hot vectors.
 
-        # Daten aufteilen
+        # Split the data into training and testing sets.
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y_encoded, test_size=0.2, random_state=42)
         
-        # Modell erstellen und kompilieren
-        self.model = NewtonOptimizedModel()
-        self.model.compile(loss='categorical_crossentropy', metrics=['accuracy'])
+        # Create and compile the model.
+        self.model = NewtonOptimizedModel()  # Instantiate the model.
+        self.model.compile(loss='categorical_crossentropy', metrics=['accuracy'])  # Compile the model with a loss function and accuracy metric.
 
     def test_model_training(self):
-        # Training Parameters
-        batch_size = self.X_train.shape[0]
+        # Test whether the model can be trained on the synthetic data.
+        batch_size = self.X_train.shape[0]  # Use the entire training set as the batch size.
 
-        # Train the model on synthetic data
+        # Train the model for one epoch.
         history = self.model.fit(self.X_train, self.y_train, batch_size=batch_size, epochs=1, validation_split=0.25)
 
-        # Überprüfen, ob das Training erfolgreich war
-        self.assertIn('loss', history.history)
-        self.assertIn('accuracy', history.history)
+        # Check if the training process has affected the 'loss' and 'accuracy' metrics.
+        self.assertIn('loss', history.history)  # Verify 'loss' is in the training history.
+        self.assertIn('accuracy', history.history)  # Verify 'accuracy' is in the training history.
 
-        # Überprüfen, ob die Genauigkeit sinnvoll ist (z.B. besser als Raten)
+        # Check if the accuracy is reasonable (e.g., better than random guessing).
         accuracy = history.history['accuracy'][0]
-        self.assertGreater(accuracy, 1/5)  # Angenommen, zufälliges Raten hätte eine Wahrscheinlichkeit von 1/3
+        self.assertGreater(accuracy, 1/5)  # Assuming random guessing would have a probability of 1/3, expect better performance.
 
     def test_model_weights_change_after_training(self):
-        # Training Parameters
+        # Test if the model's weights change after training.
         batch_size = self.X_train.shape[0]
     
-        # Gewichte vor dem Training speichern
+        # Save the initial weights of the model.
         initial_weights = [layer.get_weights() for layer in self.model.layers]
     
-        # Modell auf synthetischen Daten trainieren
+        # Train the model on synthetic data.
         self.model.fit(self.X_train, self.y_train, batch_size=batch_size, epochs=1, validation_split=0.25)
     
-        # Gewichte nach dem Training speichern
+        # Save the updated weights after training.
         updated_weights = [layer.get_weights() for layer in self.model.layers]
     
-        # Überprüfen, ob sich mindestens ein Gewicht geändert hat
+        # Check if at least one weight has changed.
         for initial_layer_weights, updated_layer_weights in zip(initial_weights, updated_weights):
             for initial_weight, updated_weight in zip(initial_layer_weights, updated_layer_weights):
-                # Überprüfen, ob Gewichte gleich sind; np.array_equal gibt False zurück, wenn sie sich unterscheiden
-                self.assertFalse(np.array_equal(initial_weight, updated_weight), "Ein Gewicht hat sich nicht wie erwartet verändert.")
-    
+                # Assert that the weights have changed by comparing the initial and updated weights.
+                self.assertFalse(np.array_equal(initial_weight, updated_weight), "A weight did not change as expected.")
+
     def test_model_prediction(self):
-        # Zufällige Daten für die Vorhersage generieren
-        random_input = np.random.rand(1, 4)
-        predictions = self.model.predict(random_input)
+        # Test the model's prediction capability.
+        random_input = np.random.rand(1, 4)  # Generate a random input vector.
+        predictions = self.model.predict(random_input)  # Make a prediction.
     
-        # Überprüfen, ob die Vorhersage die richtige Form hat
-        self.assertEqual(predictions.shape, (1, 3))  # Angenommen, es gibt 3 Klassen
+        # Check if the prediction output has the correct shape.
+        self.assertEqual(predictions.shape, (1, 3))  # Assuming there are 3 classes.
     
-        # Überprüfen, ob die Vorhersagen gültige Wahrscheinlichkeiten sind
-        self.assertTrue(np.all(predictions >= 0) and np.all(predictions <= 1))
-        self.assertAlmostEqual(np.sum(predictions), 1.0, places=5)
+        # Verify that the predictions are valid probabilities.
+        self.assertTrue(np.all(predictions >= 0) and np.all(predictions <= 1))  # Probabilities must be between 0 and 1.
+        self.assertAlmostEqual(np.sum(predictions), 1.0, places=5)  # Sum of probabilities should be 1.
         
     def test_model_initialization(self):
-        # Überprüfen der Anzahl der Schichten
-        expected_number_of_layers = 3  # Anpassen basierend auf Ihrem Modell
-        self.assertEqual(len(self.model.layers), expected_number_of_layers)
+        # Test the initial configuration of the model.
+        expected_number_of_layers = 3  # Adjust based on your model's configuration.
+        self.assertEqual(len(self.model.layers), expected_number_of_layers)  # Check the number of layers.
     
-        # Überprüfen der Aktivierungsfunktion der Ausgabeschicht
+        # Check the activation function of the output layer.
         output_activation = self.model.output_layer.activation.__name__
-        self.assertEqual(output_activation, 'softmax')
+        self.assertEqual(output_activation, 'softmax')  # The output layer should use softmax for multi-class classification.
 
     def test_training_with_various_batch_sizes(self):
+        # Test the model's ability to train with various batch sizes.
         for batch_size in [1, 10, len(self.X_train)]:
-            # Versuchen, mit unterschiedlichen Batch-Größen zu trainieren
+            # Attempt to train the model with different batch sizes.
             try:
                 self.model.fit(self.X_train, self.y_train, batch_size=batch_size, epochs=1, validation_split=0.25)
             except Exception as e:
+                # If training fails, the test should fail with an informative message.
                 self.fail(f"Training failed with batch size {batch_size}: {e}")
 
     def test_hessian_regularization(self):
-        """Testet die Regularisierung der Hesse-Matrix."""
-        # Generieren Sie eine beispielhafte Hesse-Matrix und wenden Sie die Regularisierung an
+        """Test the Hessian matrix regularization."""
+        # Generate a sample Hessian matrix and apply regularization.
         sample_hessian = tf.random.uniform((4, 4), dtype=tf.float32)
-        regularized_hessian = self.model.regularize_hessian(sample_hessian,regularization_strength=1)
+        regularized_hessian = self.model.regularize_hessian(sample_hessian, regularization_strength=1)
 
-        # Überprüfen Sie, ob die Diagonalelemente wie erwartet regularisiert wurden
+        # Check if the diagonal elements have been properly regularized.
         for i in range(4):
-            self.assertTrue(regularized_hessian[i][i] > sample_hessian[i][i].numpy(), "Regularisierung der Hesse-Matrix fehlgeschlagen.")
+            self.assertTrue(regularized_hessian[i][i] > sample_hessian[i][i].numpy(), "Hessian matrix regularization failed.")
 
+# This block allows the test suite to be run from the command line.
 if __name__ == '__main__':
     unittest.main()
-    
+
     
 
 
