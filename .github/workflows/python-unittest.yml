@@ -16,7 +16,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install tensorflow numpy
+        pip install tensorflow numpy pandas sklearn
+
     - name: Run unittests
       run: |
         python -m unittest mytests/tests.py
