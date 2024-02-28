@@ -8,7 +8,6 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.utils import to_categorical
-import matplotlib.pyplot as plt
 from tensorflow.keras.initializers import RandomNormal
 
 
