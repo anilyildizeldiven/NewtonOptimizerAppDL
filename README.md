@@ -1,35 +1,36 @@
-# Newton Optimized Neural Network Model
-
-This repository introduces the `SubsampledNewtonOptimizedModel`, a custom TensorFlow Keras model designed to incorporate Newton's method into the training process of neural networks. Unlike traditional gradient descent-based optimization methods commonly used in deep learning, this model attempts to leverage the second-order optimization technique provided by Newton's method, offering a novel approach to minimizing the loss function by considering the curvature of the loss landscape.
+NewtonOptimizedModel
 
 ## Overview
 
-Newton's method, a cornerstone of numerical optimization, utilizes the Hessian matrix (a square matrix of second-order partial derivatives of the function being optimized) along with the gradient to compute update steps. This method can potentially offer faster convergence to a minimum by taking into account the curvature of the loss function, a feature not utilized by first-order methods like SGD or Adam.
-
-However, Newton's method is computationally intensive, primarily due to the need for computing and inverting the Hessian matrix, which can be prohibitive for high-dimensional problems typical in deep learning. The `NewtonOptimizedModel` addresses this challenge by introducing a novel approach that balances the computational efficiency with the benefits of second-order optimization.
+The `NewtonOptimizedModel` is a TensorFlow Keras custom model designed to implement Newton's optimization method for training neural networks. This approach leverages both the first and second derivatives of the loss function (gradient and Hessian, respectively) to more accurately adjust model parameters during training. 
 
 ## Model Architecture
 
-### Forward Pass
+## Hessian Regularization
 
-The model defines a forward pass through its neural network architecture using the `call` method, sequentially passing input data through its layers to produce predictions.
+The `regularize_hessian` method adds a small constant to the diagonal of the Hessian matrix to ensure it remains invertible. This step is critical for stabilizing the Hessian inversion process, a key component of Newton's method, especially in scenarios where the Hessian might be singular or nearly singular.
 
-### Hessian Regularization
+## Custom Training Logic
 
-To address the numerical instability issues associated with Hessian inversion, the model includes a `regularize_hessian` method. This method adds a small value to the diagonal of the Hessian matrix, ensuring it remains invertible.
+The `train_step` method overrides the default training logic to incorporate Newton's optimization method. Here's a breakdown of its process:
 
-### Custom Training Logic
+**Loss Calculation**: Uses a `GradientTape` to make predictions and compute the loss by comparing predictions against true labels.
 
-The core innovation lies in the `train_step` method, which overrides the default training behavior to implement Newton's method for optimization:
+**Gradient and Hessian Computation**:
+   - For each layer, gradients of the loss function with respect to the layer's trainable variables are computed.
+   - Based on a subsampling parameter, it decides whether to compute Hessians for a more precise update (Newton's method) or to proceed with gradient descent updates.
+**Parameter Updates**:
+   - **Newton's Method**: For layers selected for Hessian computation, the method flattens the Hessian, regularizes it, inverts it, and then calculates the update step by multiplying the inverted Hessian with the gradient.
+   - **Gradient Descent**: For layers not selected for Hessian computation, updates are made directly using the gradients.
 
-- **Gradients and Hessians Computation**: For each layer, gradients are computed using TensorFlow's automatic differentiation. For layers selected for Newton's optimization (based on a subsampling parameter), the Hessians are also computed.
-- **Subsampling Strategy**: Instead of applying Newton's method uniformly across all layers, the model employs a probabilistic approach to decide for each layer whether to update its variables using Newton's method or traditional gradient descent. This strategy aims to balance computational efficiency with the optimization benefits of Newton's method.
-- **Parameter Updates**: For variables selected for Newton's optimization, the model computes update steps by inverting the regularized Hessian matrix and applying it to the gradient. For other variables, updates are made using a gradient descent approach.
+## Considerations on Batch Size
 
-## Usage
+When running the `NewtonOptimizedModel`, using batches smaller than the full size of the training data introduces bias in Hessian calculation. This bias occurs because the Hessian, calculated per batch, represents the curvature of the loss landscape based on the subset of data in the batch rather than the entire dataset. We used ```batch_size = X_train.shape[0]``` as batchsize (as can be seen in the example).
 
-The repository includes a comprehensive guide to setting up and training the `NewtonOptimizedModel` with a sample dataset (e.g., Iris dataset). Users can customize the model architecture, adjust the subsampling parameter, and experiment with different configurations to explore the effectiveness of Newton's method in various scenarios.
+## Deep Dive into the Logic
 
-## Caveats
+The model is designed to experiment with Newton's method in the context of deep learning, providing insights into how second-order optimization might improve or affect the training process. By allowing for a subsampling parameter that controls the mix of Newton's method and traditional gradient descent updates, the model offers a flexible framework for investigating the benefits and challenges of incorporating Hessian-based updates in neural network training.
 
-Be cautious about the batch size when testing the Code. In order for the Hessians not to be biased use ```batch_size = X_train.shape[0]``` as batchsize (as can be seen in the example).
+## Running the Model
+
+When using the model, consider the impact of the ```subsampling_parameter```as well as the ```regularization_strength``` on the effectiveness and accuracy of Newton's optimization method. It's recommended to experiment with different values  to find the optimal configuration for your specific problem.
