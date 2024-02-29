@@ -26,4 +26,16 @@ The tests were conducted on neural networks with varying depths to assess the ad
 - **Twenty-Layer Net**: A deep network architecture with twenty hidden layers.
 
 ### Results
-The performance plots demonstrate how our custom Subsampled Newton Optimizer compares to the SGD and Adam optimizers in terms of loss convergence across the different datasets and network architectures. These results highlight the effectiveness and robustness of our optimizer in various scenarios.
+For the plots in folder, we chose the following configurations of our custom model:
+iris_2_layers: tbd
+wine_2_layers: tbd
+automobile_2_layers: tbd
+
+iris_5_layers: tbd
+wine_5_layers: tbd
+automobile_2_layers: tbd
+
+iris_20_layers: tbd
+wine_20_layers: tbd
+automobile_2_layers: tbd
+
