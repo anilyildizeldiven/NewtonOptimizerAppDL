@@ -19,7 +19,7 @@ class NewtonOptimizedModel(Model):
         self.dense1 = Dense(10, activation='tanh', kernel_initializer=RandomNormal())
         self.output_layer = Dense(num_classes, activation='softmax', kernel_initializer=RandomNormal())
         self.subsampling_rate = subsampling_rate
-        self.last_subsampled_indices = [] 
+        
 
     def call(self, inputs):
         x = self.dense(inputs)
@@ -44,9 +44,7 @@ class NewtonOptimizedModel(Model):
         subsampled_indices = np.random.choice(range(len(self.trainable_variables)), 
                                               size=int(np.floor(len(self.trainable_variables) * self.subsampling_rate)), 
                                               replace=False)
-        self.last_subsampled_indices = np.random.choice(range(len(self.trainable_variables)), 
-                                                        size=int(np.floor(len(self.trainable_variables) * self.subsampling_rate)), 
-                                                        replace=False) 
+                                                        
         update_norms = []
         
          # Iterate over each trainable variable & compute gradients 
