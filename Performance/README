@@ -1,14 +1,15 @@
 ## Performance Tests of the Subsampled Newton Optimizer
 
-We conducted a series of performance tests for our custom model class, leveraging the Subsampled Newton Optimizer, across three datasets from the UCI database:
+We conducted a series of performance tests for our custom model class, leveraging our Subsampled Newton Optimizer, across three datasets from the UCI database:
 - [Iris Dataset](https://archive.ics.uci.edu/ml/datasets/iris)
 - [Wine Dataset](https://archive.ics.uci.edu/ml/datasets/wine)
-- [Automobile Dataset](https://archive.ics.uci.edu/ml/datasets/automobile)
+- [Dry Bean Dataset](https://archive.ics.uci.edu/dataset/602/dry+bean+dataset)
 
 ### Configuration
-For our tests, we configured the custom model with the following parameters:
-- **Regularization Strength**: `1e-4`
-- **Subsampling Parameter**: `0.5`
+For the iris Dataset and the Wine Dataset tests, we configured the custom model with the following parameters:
+- **Regularization Strength**: `1e-2`
+- **Subsampling Parameter**: `0.9`
+For the larger Dry Bean Dataset test regularization strength was also set to `1e-2`, but the subsampling parameter was set to `0.6`
 
 We compared the performance of our model against two commonly used optimizers:
 - **SGD (Stochastic Gradient Descent)**
@@ -21,21 +22,12 @@ Each optimizer, including our custom Subsampled Newton Optimizer, was run for `1
 
 ### Neural Network Architectures
 The tests were conducted on neural networks with varying depths to assess the adaptability and efficiency of the Subsampled Newton Optimizer:
-- **One-Layer Net**: A simple network with a single hidden layer.
-- **Five-Layer Net**: A more complex network with five hidden layers.
-- **Twenty-Layer Net**: A deep network architecture with twenty hidden layers.
+- **Two-Layer Net**: A simple network with a two hidden layers, tested on the iris dataset (see plot: iris_2_layers).
+- **Five-Layer Net**: A more complex network with five hidden layers, tested on the wine dataset (see plot: wine_5_layers).
+- **Ten-Layer Net**: A (deep) network architecture with ten hidden layers, on the larger Dry Bean Dataset (see plot: dry_bean_10_layers).
 
-### Results
-For the plots in folder, we chose the following configurations of our custom model:
-iris_2_layers: tbd
-wine_2_layers: tbd
-automobile_2_layers: tbd
-
-iris_5_layers: tbd
-wine_5_layers: tbd
-automobile_2_layers: tbd
-
-iris_20_layers: tbd
-wine_20_layers: tbd
-automobile_2_layers: tbd
+### Performance
+While both out model, as well as the standard optimizers would require fine tuning on their hyperparameters, depending on each problem, our performance tests with the fixed hyperparameter 
+configurations, as mentioned above, shows promising results.  Nevertheless, while it  is performing better than the SGD Optimizer on the wine dataset ( i.e. the smallest tested net),
+the average loss on the wine dataset does not converge to the minimum as expected, rather it shows some jumps (which are also present in the ADAM optimizer though).
 
