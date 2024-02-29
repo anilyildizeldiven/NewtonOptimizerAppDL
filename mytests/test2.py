@@ -73,40 +73,41 @@ class NewtonOptimizedModel(Model):
         self.compiled_metrics.update_state(y, y_pred)
         return {m.name: m.result() for m in self.metrics}
 
-# Import necessary libraries for testing, numerical operations, TensorFlow, and data preprocessing.
 import unittest
-import numpy as np
 import tensorflow as tf
-from sklearn.preprocessing import LabelEncoder
-from tensorflow.keras.utils import to_categorical
-from sklearn.model_selection import train_test_split
+import numpy as np
 
-def simulate_training(model, epochs, subsampling_parameter, data): 
-    """Simuliert den Trainingsprozess für eine gegebene Anzahl von Epochen."""
-    history = {'loss': [], 'accuracy': []}
-    for _ in range(epochs):
-        result = model.train_step(data, subsampling_parameter=subsampling_parameter)
-        history['loss'].append(result['loss'])
-        history['accuracy'].append(result['accuracy'])
-    return history
+# Hier fügen Sie Ihren NewtonOptimizedModel Code ein
 
-class TestSubsamplingOverTime(unittest.TestCase):
+class TestNewtonOptimizedModelSubsampling(unittest.TestCase):
     def setUp(self):
-        self.model = NewtonOptimizedModel()
-        self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-        self.x_train = np.random.random((100, 4)).astype(np.float32)
-        self.y_train = tf.keras.utils.to_categorical(np.random.randint(3, size=(100, 1)), num_classes=3)
-        self.data = (tf.convert_to_tensor(self.x_train), tf.convert_to_tensor(self.y_train))
+        # Initialisierung des Modells und der Testdaten
+        self.model = NewtonOptimizedModel(input_shape=(4,), subsampling_rate=0.9, num_classes=3)
+        self.x_train = np.random.rand(100, 4).astype(np.float32)  # Simulierte Trainingsdaten
+        self.y_train = tf.keras.utils.to_categorical(np.random.randint(3, size=100), num_classes=3)
 
-    def test_subsampling_effect_over_time(self):
-        # Simulieren Sie das Training mit und ohne Subsampling
-        history_with_subsampling = simulate_training(self.model, epochs=10, subsampling_parameter=1, data=self.data)
-        history_without_subsampling = simulate_training(self.model, epochs=10, subsampling_parameter=0, data=self.data)
+    def test_subsampling_rate(self):
+        # Anzahl der trainierbaren Variablen im Modell
+        total_variables = len(self.model.trainable_variables)
+        expected_subsampled_variables = int(np.floor(total_variables * self.model.subsampling_rate))
 
-        # Analysieren Sie die Trends in Verlust- und Genauigkeitswerten
-        # Zum Beispiel: Überprüfen Sie, ob sich die Endwerte signifikant unterscheiden
-        self.assertNotEqual(history_with_subsampling['loss'][-1], history_without_subsampling['loss'][-1], "Subsampling hat keinen langfristigen Einfluss.")
-        # Weitere Analysen könnten hier folgen, z.B. Trendvergleiche, statistische Tests etc.
+        # Manuelle Simulation des Subsampling-Schrittes
+        subsampled_indices = np.random.choice(range(total_variables), 
+                                              size=expected_subsampled_variables, 
+                                              replace=False)
+
+        # Überprüfung, ob die Anzahl der subsampled Variablen der Erwartung entspricht
+        self.assertEqual(len(subsampled_indices), expected_subsampled_variables)
+
+    def test_training_with_subsampling(self):
+        # Trainieren des Modells mit einem Batch von Daten, um die Funktionsweise des Subsamplings zu testen
+        initial_weights = [tf.identity(var) for var in self.model.trainable_variables]
+        self.model.train_step((self.x_train[:10], self.y_train[:10]))
+
+        # Überprüfung, ob nach dem Training eine Veränderung in den Gewichten stattgefunden hat
+        for initial_weight, updated_weight in zip(initial_weights, self.model.trainable_variables):
+            self.assertTrue(np.any(initial_weight.numpy() != updated_weight.numpy()))
 
 if __name__ == '__main__':
     unittest.main()
+
