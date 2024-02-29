@@ -1,38 +1,34 @@
-# NewtonOptimizedModel
+# Subsampled Newton Method Optimized Model
 
-## Overview
 
-The `NewtonOptimizedModel` is a TensorFlow Keras custom model designed to implement Newton's optimization method for training neural networks. This approach leverages both the first and second derivatives of the loss function (gradient and Hessian, respectively) to more accurately adjust model parameters during training. 
+The subsampled `NewtonOptimizedModel` is acustom TensorFlow model that uses the Newton Method to update the Variables of a Neural Net together with a subsampling rate.
+The built in subsampling reduces the computational burden of second order updates.
 
-## Hessian Regularization
+The performance of this custom model has been meticulously plotted against common optimizers like SGD (Stochastic Gradient Descent) and Adam, showcasing its  capabilities. These results are accessible in the "Performance" folder for detailed analysis.
 
-The `regularize_hessian` method adds a small constant to the diagonal of the Hessian matrix to ensure it remains invertible. This step is critical for stabilizing the Hessian inversion process, a key component of Newton's method, especially in scenarios where the Hessian might be singular or nearly singular.
+## How the Model Works
 
-## Custom Training Logic
+### Core Architecture
 
-The `train_step` method overrides the default training logic to incorporate Newton's optimization method. Here's a breakdown of its process:
+At its core, the `NewtonOptimizedModel` is built upon TensorFlow's `Model` class, incorporating layers such as `Dense` with activation functions and initializers tailored for specific tasks. One can customize the model's architecture, including the number of classes (`num_classes`) and the subsampling rate (`subsampling_rate`).
 
-**Loss Calculation**: Uses a `GradientTape` to make predictions and compute the loss by comparing predictions against true labels.
+### Newton's Method Optimization
 
-**Gradient and Hessian Computation**:
-   - For each layer, gradients of the loss function with respect to the layer's trainable variables are computed.
-   - Based on a subsampling parameter, it decides whether to compute Hessians for a more precise update (Newton's method) or to proceed with gradient descent updates.
-**Parameter Updates**:
-   - **Newton's Method**: For layers selected for Hessian computation, the method flattens the Hessian, regularizes it, inverts it, and then calculates the update step by multiplying the inverted Hessian with the gradient.
-   - **Gradient Descent**: For layers not selected for Hessian computation, updates are made directly using the gradients.
+The key feature of this model is its implementation of the Newton optimization method which generally allows for faster convergence to the minimum of the loss function compared to first-order methods.
 
-## Considerations on Batch Size
+### Regularization and Hessian Matrix
 
-When running the `NewtonOptimizedModel`, using batches smaller than the full size of the training data introduces bias in Hessian calculation. This bias occurs because the Hessian, calculated per batch, represents the curvature of the loss landscape based on the subset of data in the batch rather than the entire dataset. We used ```batch_size = X_train.shape[0]``` as batchsize (as can be seen in the example).
+To ensure stability and prevent inversion problems, the Hessian matrix is regularized by adding a small value (`regularization_strength`) to its diagonal. This step mitigates the issue of ill-conditioned matrices, which can arise due to the high dimensionality of deep learning models.
 
-## Deep Dive into the Logic
+### Subsampling for Scalability
 
-The model is designed to experiment with Newton's method in the context of deep learning, providing insights into how second-order optimization might improve or affect the training process. By allowing for a subsampling parameter that controls the mix of Newton's method and traditional gradient descent updates, the model offers a flexible framework for investigating the benefits and challenges of incorporating Hessian-based updates in neural network training.
+Given the computational complexity of calculating the Hessian matrix for all variables, the model implements a subsampling strategy controlled by the `subsampling_rate` parameter. This rate determines the fraction of variables for which the Hessian and its inverse will be computed. For non-sampled variables, updates are scaled using the average update norm derived from the subsampled variables and their gradients.
 
-## Running the Model
+### Ensuring Update Compatibility
 
-When using the model, consider the impact of the ```subsampling_parameter```as well as the ```regularization_strength``` on the effectiveness and accuracy of Newton's optimization method. It's recommended to experiment with different values  to find the optimal configuration for your specific problem.
+The model meticulously ensures that updates are compatible with the shapes of the respective variables. This is achieved by flattening the Hessian matrix, performing the necessary matrix operations, and then reshaping the update vector to match the variable's dimensions (as demonstrated in this simple example: https://www.tensorflow.org/guide/advanced_autodiff#example_hessian)
 
-## Performance
+## Parameters:
 
-tbd
+- **`regularization_strength`**: A parameter that controls the degree of regularization applied to the Hessian matrix, preventing numerical instabilities during its inversion.
+- **`subsampling_rate`**: This parameter dictates the proportion of variables selected for Hessian computation and Newton's method updates. A higher rate increases computation but may lead to faster convergence. 
