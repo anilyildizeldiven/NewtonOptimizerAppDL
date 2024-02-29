@@ -1,1 +1,10 @@
+The Performance Tests of the custom model class of our Subsampled Newton Optimizer include three datasets of the UCI database (https://archive.ics.uci.edu/datasets):
+iris.csv, wine.csv and automobile.csv
+
+We Plotted the Performance of our model with ```regularization_strength=1e-4``` and ```subsampling_parameter=0.5``` against
+the perormance of common Optimizers: SGD & ADAM, each with ```batch_size=32```and ```learning_rate=0.01```
+Each optimizer and our model ran 100 epoch for 10 runs, while the plots show their average loss convergence.
+
+We did that for each of the three datasets for differently deep neural nets: one one layer net, one 5 layer net and one 20 layer net.
+
 
