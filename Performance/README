@@ -30,4 +30,9 @@ The tests were conducted on neural networks with varying depths to assess the ad
 While both out model, as well as the standard optimizers would require fine tuning on their hyperparameters, depending on each problem, our performance tests with the fixed hyperparameter 
 configurations, as mentioned above, shows promising results.  Nevertheless, while it  is performing better than the SGD Optimizer on the wine dataset ( i.e. the smallest tested net),
 the average loss on the wine dataset does not converge to the minimum as expected, rather it shows some jumps (which are also present in the ADAM optimizer though).
+For the Performance Test on the Dry Bean Dataset, our model, however, shows the highest average loss, while the SGD Optimizer converges fast to a lower loss (the ADAM Optimizer, however, does not 
+converge to a minimum, but rather jumps and even increases). For Convenience another plot is included in the "Plots" Folder, displaying the Training and validation loss of our model, which is converging
+to a minimum of about 1.83 when using the Dry Bean Dataset as input (see plot: tra_val_loss_model). The same hyperparameter configuration as in the dry_bean_10_layers test is used, only running for 25 epochs.
+
+
 
