@@ -196,37 +196,3 @@ if __name__ == '__main__':
 
 
 
-def simulate_training(model, epochs, subsampling_parameter, data):
-    """Simuliert den Trainingsprozess für eine gegebene Anzahl von Epochen."""
-    history = {'loss': [], 'accuracy': []}
-    for _ in range(epochs):
-        result = model.train_step(data, subsampling_parameter=subsampling_parameter)
-        history['loss'].append(result['loss'])
-        history['accuracy'].append(result['accuracy'])
-    return history
-
-class TestSubsamplingOverTime(unittest.TestCase):
-    def setUp(self):
-        self.model = NewtonOptimizedModel()
-        self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-        self.x_train = np.random.random((100, 4)).astype(np.float32)
-        self.y_train = tf.keras.utils.to_categorical(np.random.randint(3, size=(100, 1)), num_classes=3)
-        self.data = (tf.convert_to_tensor(self.x_train), tf.convert_to_tensor(self.y_train))
-
-    def test_subsampling_effect_over_time(self):
-        # Simulieren Sie das Training mit und ohne Subsampling
-        history_with_subsampling = simulate_training(self.model, epochs=10, subsampling_parameter=1, data=self.data)
-        history_without_subsampling = simulate_training(self.model, epochs=10, subsampling_parameter=0, data=self.data)
-
-        # Analysieren Sie die Trends in Verlust- und Genauigkeitswerten
-        # Zum Beispiel: Überprüfen Sie, ob sich die Endwerte signifikant unterscheiden
-        self.assertNotEqual(history_with_subsampling['loss'][-1], history_without_subsampling['loss'][-1], "Subsampling hat keinen langfristigen Einfluss.")
-        # Weitere Analysen könnten hier folgen, z.B. Trendvergleiche, statistische Tests etc.
-
-if __name__ == '__main__':
-    unittest.main()
-
-
-
-
-
