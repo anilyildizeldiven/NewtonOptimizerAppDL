@@ -1,4 +1,4 @@
-# Subsampled Newton Method Optimized Model
+# Subsampled Newton Method - Optimized Model
 
 
 The subsampled `NewtonOptimizedModel` is acustom TensorFlow model that uses the Newton Method to update the Variables of a Neural Net together with a subsampling rate.
