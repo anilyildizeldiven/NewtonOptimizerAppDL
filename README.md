@@ -1,10 +1,8 @@
-NewtonOptimizedModel
+# NewtonOptimizedModel
 
 ## Overview
 
 The `NewtonOptimizedModel` is a TensorFlow Keras custom model designed to implement Newton's optimization method for training neural networks. This approach leverages both the first and second derivatives of the loss function (gradient and Hessian, respectively) to more accurately adjust model parameters during training. 
-
-## Model Architecture
 
 ## Hessian Regularization
 
