@@ -7,7 +7,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.initializers import RandomNormal
 
-# Load Data direkt
+# Load Data direct
 iris = load_iris()
 X = iris.data
 y = iris.target
