@@ -27,7 +27,3 @@ The tests were conducted on neural networks with varying depths to assess the ad
 
 ### Results
 The performance plots demonstrate how our custom Subsampled Newton Optimizer compares to the SGD and Adam optimizers in terms of loss convergence across the different datasets and network architectures. These results highlight the effectiveness and robustness of our optimizer in various scenarios.
-
----
-
-This structured format provides a clear and concise overview of your performance tests, making it easy for readers to understand the scope, methodology, and outcomes of your experiments.
