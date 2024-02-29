@@ -1,10 +1,10 @@
 # Subsampled Newton Method - Optimized Model
 
 
-The subsampled `NewtonOptimizedModel` is acustom TensorFlow model that uses the Newton Method to update the Variables of a Neural Net together with a subsampling rate.
+The subsampled `NewtonOptimizedModel` is a custom TensorFlow model that uses the Newton Method to update the Variables of a Neural Net together with a subsampling rate.
 The built in subsampling reduces the computational burden of second order updates.
 
-The performance of this custom model has been meticulously plotted against common optimizers like SGD (Stochastic Gradient Descent) and Adam, showcasing its  capabilities. These results are accessible in the "Performance" folder for detailed analysis.
+The performance of this custom model has been meticulously plotted against common optimizers like SGD (Stochastic Gradient Descent) and Adam, showcasing its capabilities. These results are accessible in the "Performance" folder for detailed analysis.
 
 ## How the Model Works
 
