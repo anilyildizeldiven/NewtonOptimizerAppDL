@@ -190,18 +190,19 @@ class TestNewtonOptimizedModel(unittest.TestCase):
         # Check if the diagonal elements have been properly regularized.
         for i in range(4):
             self.assertTrue(regularized_hessian[i][i] > sample_hessian[i][i].numpy(), "Hessian matrix regularization failed.")
-
     
     def test_subsampled_indices_length(self):
-        model = NewtonOptimizedModel(subsampling_rate=0.5)
-        model.compile(loss='categorical_crossentropy', metrics=['accuracy'])
+        model = NewtonOptimizedModel(input_shape=(10,), subsampling_rate=0.5, num_classes=2)
+        model.compile(loss='sparse_categorical_crossentropy')
+        
         x = tf.random.uniform((100, 10))
-        y = tf.random.uniform((100,),dtype=tf.int32)
+        y = tf.random.uniform((100,), maxval=2, dtype=tf.int32)
         
         model.train_step((x, y))
         
-        # Überprüfen Sie jetzt direkt das Attribut `last_subsampled_indices`
-        self.assertGreater(len(model.last_subsampled_indices), 0, "Subsampling indices should not be empty")
+        # Überprüfen, ob die Länge von `last_subsampled_indices` größer als 0 ist
+        # Verwenden von `assertTrue` für eine einfachere Überprüfung
+        self.assertTrue(len(model.last_subsampled_indices) > 0, "Subsampling indices should not be empty")
 
 # This block allows the test suite to be run from the command line.
 if __name__ == '__main__':
