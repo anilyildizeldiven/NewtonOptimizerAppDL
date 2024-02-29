@@ -196,7 +196,7 @@ class TestNewtonOptimizedModel(unittest.TestCase):
         model = NewtonOptimizedModel(subsampling_rate=0.5)
         model.compile(loss='categorical_crossentropy', metrics=['accuracy'])
         x = tf.random.uniform((100, 10))
-        y = tf.random.uniform((100,), maxval=2, dtype=tf.int32)
+        y = tf.random.uniform((100,),dtype=tf.int32)
         
         model.train_step((x, y))
         
