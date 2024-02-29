@@ -1,3 +1,4 @@
+
 import os
 import numpy as np
 import pandas as pd
@@ -9,70 +10,82 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.initializers import RandomNormal
 
-
-# Block 1
+# Define a custom model class 
 class NewtonOptimizedModel(Model):
-    def __init__(self):
+    # Initialize the Model & define the layers
+    # Change layers, num_classes and the subsampling_rate according to your needs
+    def __init__(self, input_shape=(4,), subsampling_rate=0.9, num_classes=3):
         super(NewtonOptimizedModel, self).__init__()
-        self.dense = Dense(15, activation='tanh', input_shape=(4,), kernel_initializer=RandomNormal())
+        self.dense = Dense(15, activation='tanh', input_shape=input_shape, kernel_initializer=RandomNormal())
         self.dense1 = Dense(10, activation='tanh', kernel_initializer=RandomNormal())
-        self.output_layer = Dense(3, activation='softmax', kernel_initializer=RandomNormal())
+        self.output_layer = Dense(num_classes, activation='softmax', kernel_initializer=RandomNormal())
+        self.subsampling_rate = subsampling_rate
 
     def call(self, inputs):
         x = self.dense(inputs)
         x = self.dense1(x)
         return self.output_layer(x)
-
-    def regularize_hessian(self, hessian, regularization_strength=1e-9):
-        regularized_hessian = hessian + tf.eye(tf.shape(hessian)[0]) * regularization_strength
-        return regularized_hessian
-
-    def train_step(self, data, subsampling_parameter=0.5):
+        
+    # Helper method to regularize the Hessian matrix by adding a small value to its diagonal
+    # Change regularization_strength if necessary
+    def regularize_hessian(self, hessian, regularization_strength=1e-2):
+        n = tf.shape(hessian)[-1]
+        return hessian + tf.eye(n) * regularization_strength
+        
+    # Custom training step that incorporates Newton's method optimization aspects
+    def train_step(self, data):
         x, y = data
-
         with tf.GradientTape(persistent=True) as tape:
+            tape.watch(self.trainable_variables)
             y_pred = self(x, training=True)
             loss = self.compiled_loss(y, y_pred)
+            
+        # Select a subset of variables to compute the Hessian for, based on the subsampling rate
+        subsampled_indices = np.random.choice(range(len(self.trainable_variables)), 
+                                              size=int(np.floor(len(self.trainable_variables) * self.subsampling_rate)), 
+                                              replace=False)
+        update_norms = []
+        
+         # Iterate over each trainable variable & compute gradients 
+        for i, var in enumerate(self.trainable_variables):
+            with tf.GradientTape() as hessian_tape:
+                hessian_tape.watch(var)
+                with tf.GradientTape() as grad_tape:
+                    grad_tape.watch(var)
+                    y_pred_inner = self(x, training=True)
+                    loss_inner = self.compiled_loss(y, y_pred_inner)
+                grad = grad_tape.gradient(loss_inner, var)
+                
+            # Compute the Hessian, the respective inversion and the newton method update step, as well as the update norm for subsampled variables
+            if i in subsampled_indices:
+                hessian = hessian_tape.jacobian(grad, var)
+                var_size = tf.reduce_prod(var.shape)
+                hessian_flat = tf.reshape(hessian, [var_size, var_size])
+                hessian_reg = self.regularize_hessian(hessian_flat)
+                inv_hessian = tf.linalg.inv(hessian_reg + tf.eye(var_size))
+                update = tf.linalg.matmul(inv_hessian, tf.reshape(grad, [-1, 1]))
+                update_reshaped = tf.reshape(update, var.shape)
+                var.assign_sub(update_reshaped)
+                update_norm = tf.norm(inv_hessian)
+                update_norms.append(update_norm)
+                
+        # Compute average update norm for subsampled variables
+        avg_update_norm = tf.reduce_mean(update_norms) if update_norms else 0
 
-        layer_gradients = {}
-        layer_hessians = {}
+        # Apply scaled gradient update to non-sampled variables using the average update norm
+        for i, var in enumerate(self.trainable_variables):
+            if i not in subsampled_indices:
+                with tf.GradientTape() as grad_tape:
+                    grad_tape.watch(var)
+                    y_pred_inner = self(x, training=True)
+                    loss_inner = self.compiled_loss(y, y_pred_inner)
+                grad = grad_tape.gradient(loss_inner, var)
+                scaled_update = grad * avg_update_norm
+                var.assign_sub(scaled_update)
 
-        for layer in self.layers:
-            with tf.GradientTape(persistent=True) as hessian_tape:
-                # Compute gradients for each layer separately
-                layer_loss = self.compiled_loss(y, self(x, training=True))
-                grads = hessian_tape.gradient(layer_loss, layer.trainable_variables)
-
-                # Determine if layer should be subsampled based on subsampling_parameter
-                if np.random.rand() < subsampling_parameter:
-                    # Compute Hessians for subsampled layers
-                    hessians = [hessian_tape.jacobian(grad, var) for grad, var in zip(grads, layer.trainable_variables)]
-                    layer_hessians[layer.name] = hessians
-                else:
-                    # For non-sampled layers, simply store gradients
-                    layer_gradients[layer.name] = grads
-
-        # Apply updates using gradients for non-sampled layers and Hessians for subsampled layers
-        for layer in self.layers:
-            if layer.name in layer_hessians:
-                # Apply updates using Hessians for subsampled layers
-                for hessian, grad, var in zip(layer_hessians[layer.name], layer_gradients.get(layer.name, []), layer.trainable_variables):
-                    # Flatten Hessian and compute inverse or pseudo-inverse
-                    hessian_flat = tf.reshape(hessian, [tf.size(var), -1])
-                    reg_hessian = self.regularize_hessian(hessian_flat)
-                    inv_hessian = tf.linalg.inv(reg_hessian)
-                    grad_flat = tf.reshape(grad, [-1, 1])
-                    var_update = tf.linalg.matmul(inv_hessian, grad_flat)
-                    var.assign_sub(tf.reshape(var_update, var.shape))
-            elif layer.name in layer_gradients:
-                # Apply updates using gradients for non-sampled layers
-                for grad, var in zip(layer_gradients[layer.name], layer.trainable_variables):
-                    var.assign_sub(grad)
-
-        del tape
         self.compiled_metrics.update_state(y, y_pred)
         return {m.name: m.result() for m in self.metrics}
-
+        
 # Import necessary libraries for testing, numerical operations, TensorFlow, and data preprocessing.
 import unittest
 import numpy as np
