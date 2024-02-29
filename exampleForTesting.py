@@ -7,8 +7,6 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.initializers import RandomNormal
 
-# NewtonOptimizedModel Definition hier einfügen
-
 # Load Data direkt
 iris = load_iris()
 X = iris.data
