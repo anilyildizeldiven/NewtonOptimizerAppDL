@@ -32,4 +32,4 @@ The repository includes a comprehensive guide to setting up and training the `Ne
 
 ## Caveats
 
-Be cautious about the batch size when testing the Code. In order for the Hessians not to be biased use batch_size = X_train.shape[0] as batchsize (as can be seen in the example).
+Be cautious about the batch size when testing the Code. In order for the Hessians not to be biased use ```batch_size = X_train.shape[0]``` as batchsize (as can be seen in the example).
