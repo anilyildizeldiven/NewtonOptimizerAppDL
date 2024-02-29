@@ -175,9 +175,9 @@ class TestNewtonOptimizedModel(unittest.TestCase):
             self.assertTrue(regularized_hessian[i][i] > sample_hessian[i][i].numpy(), "Hessian matrix regularization failed.")
 
 
-    def test_subsampling_method():
+    def test_subsampling_method(self):
      # Erstelle eine Instanz deines Modells mit einer spezifischen Subsampling-Rate
-     model = NewtonOptimizedModel(subsampling_rate=0.5, num_classes=3)
+     model = NewtonOptimizedModel(subsampling_rate=0.5)
      total_vars = len(model.trainable_variables)
      expected_subsampling_count = int(np.floor(total_vars * model.subsampling_rate))
 
