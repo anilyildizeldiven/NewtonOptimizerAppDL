@@ -32,3 +32,7 @@ The model is designed to experiment with Newton's method in the context of deep 
 ## Running the Model
 
 When using the model, consider the impact of the ```subsampling_parameter```as well as the ```regularization_strength``` on the effectiveness and accuracy of Newton's optimization method. It's recommended to experiment with different values  to find the optimal configuration for your specific problem.
+
+## Performance
+
+tbd
