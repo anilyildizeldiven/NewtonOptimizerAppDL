@@ -20,6 +20,7 @@ class NewtonOptimizedModel(Model):
         self.dense1 = Dense(10, activation='tanh', kernel_initializer=RandomNormal())
         self.output_layer = Dense(num_classes, activation='softmax', kernel_initializer=RandomNormal())
         self.subsampling_rate = subsampling_rate
+        self.last_subsampled_indices = []  
 
     def call(self, inputs):
         x = self.dense(inputs)
@@ -44,6 +45,9 @@ class NewtonOptimizedModel(Model):
         subsampled_indices = np.random.choice(range(len(self.trainable_variables)), 
                                               size=int(np.floor(len(self.trainable_variables) * self.subsampling_rate)), 
                                               replace=False)
+        self.last_subsampled_indices = np.random.choice(range(len(self.trainable_variables)), 
+                                                        size=int(np.floor(len(self.trainable_variables) * self.subsampling_rate)), 
+                                                        replace=False)
         update_norms = []
         
          # Iterate over each trainable variable & compute gradients 
@@ -187,6 +191,17 @@ class TestNewtonOptimizedModel(unittest.TestCase):
         for i in range(4):
             self.assertTrue(regularized_hessian[i][i] > sample_hessian[i][i].numpy(), "Hessian matrix regularization failed.")
 
+    
+    def test_subsampled_indices_length(self):
+        model = NewtonOptimizedModel(subsampling_rate=0.5)
+        model.compile(loss='categorical_crossentropy', metrics=['accuracy'])
+        x = tf.random.uniform((100, 10))
+        y = tf.random.uniform((100,), maxval=2, dtype=tf.int32)
+        
+        model.train_step((x, y))
+        
+        # Überprüfen Sie jetzt direkt das Attribut `last_subsampled_indices`
+        self.assertGreater(len(model.last_subsampled_indices), 0, "Subsampling indices should not be empty")
 
 # This block allows the test suite to be run from the command line.
 if __name__ == '__main__':
